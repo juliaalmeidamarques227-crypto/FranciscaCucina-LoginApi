@@ -1,2 +1,16 @@
+# Build
 bin/
 obj/
+
+# Visual Studio Code
+.vscode/
+
+# User Secrets
+appsettings.Development.json
+
+# Logs
+*.log
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
