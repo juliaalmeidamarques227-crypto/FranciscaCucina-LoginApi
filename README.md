@@ -16,6 +16,8 @@ O projeto foi desenvolvido com foco em boas práticas de backend, incluindo pers
 * Perfis de acesso (`Admin` e `Usuario`);
 * Autorização de rotas por perfil;
 * Documentação e testes pelo Swagger/OpenAPI.
+* Testes automatizados de integração com xUnit;
+* Ambiente de testes isolado com SQLite em memória.
 
 ## Tecnologias utilizadas
 
@@ -167,7 +169,7 @@ Configure uma instância do SQL Server e ajuste a `ConnectionStrings` do projeto
 
 ### 4. Configurar a chave JWT
 
-Crie a chave usando User Secrets:
+Criar a chave usando User Secrets:
 
 ```bash
 dotnet user-secrets init
@@ -200,5 +202,3 @@ Este projeto foi desenvolvido como parte do meu portfólio de backend para prati
 * implementar frontend para consumo da API;
 * evoluir a documentação;
 * preparar o projeto para deploy.
-
-

@@ -18,4 +18,11 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUi" Version="10.2.3" />
   </ItemGroup>
 
+
+<ItemGroup>
+  <Compile Remove="LoginApi.Tests\**" />
+  <EmbeddedResource Remove="LoginApi.Tests\**" />
+  <None Remove="LoginApi.Tests\**" />
+</ItemGroup>
+
 </Project>
