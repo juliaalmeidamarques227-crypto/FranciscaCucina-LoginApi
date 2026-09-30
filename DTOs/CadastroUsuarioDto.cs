@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace LoginApi.Models;
+namespace LoginApi.DTOs;
 
-public class CadastroUsuario
+public class CadastroUsuarioDto
 {
     [Required]
     public string Nome { get; set; } = string.Empty;

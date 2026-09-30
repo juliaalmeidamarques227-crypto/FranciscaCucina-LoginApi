@@ -1,6 +1,6 @@
-namespace LoginApi.Models;
+namespace LoginApi.DTOs;
 
-public class LoginUsuario
+public class LoginUsuarioDto
 {
     public string Email { get; set; } = string.Empty;
 

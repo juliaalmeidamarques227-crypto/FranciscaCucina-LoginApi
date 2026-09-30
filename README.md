@@ -1,32 +1,32 @@
-# LoginApi
+# Francisca Cucina — Login API
 
-API REST desenvolvida em ASP.NET Core para gerenciamento de usuários, autenticação e autorização.
+API REST desenvolvida em C# e ASP.NET Core para gerenciamento de usuários, autenticação e autorização.
 
-O projeto foi desenvolvido com foco em boas práticas de backend, incluindo persistência de dados, hash de senhas, autenticação com JWT e controle de acesso por perfil.
+O projeto foi criado para um sistema interno da Francisca Cucina, com foco em uma estrutura simples, organizada e fácil de manter.
 
-## Funcionalidades
+## O que a API faz
 
 * Cadastro de usuários;
-* Validação de dados;
+* Validação dos dados de cadastro;
 * Verificação de e-mail duplicado;
-* Hash seguro de senhas;
+* Hash das senhas;
 * Login com e-mail e senha;
-* Geração de JWT;
-* Rotas protegidas por autenticação;
-* Perfis de acesso (`Admin` e `Usuario`);
-* Autorização de rotas por perfil;
-* Documentação e testes pelo Swagger/OpenAPI.
-* Testes automatizados de integração com xUnit;
-* Ambiente de testes isolado com SQLite em memória.
+* Geração de token JWT;
+* Rotas protegidas;
+* Controle de acesso por perfil;
+* Documentação da API com Swagger/OpenAPI;
+* Testes automatizados de integração.
 
-## Tecnologias utilizadas
+## Tecnologias
 
 * C#
 * ASP.NET Core 9
 * Entity Framework Core 9
 * SQL Server
+* SQLite
 * JWT Bearer Authentication
 * Swagger / OpenAPI
+* xUnit
 * Git e GitHub
 
 ## Estrutura do projeto
@@ -35,17 +35,32 @@ O projeto foi desenvolvido com foco em boas práticas de backend, incluindo pers
 LoginApi/
 ├── Controllers/
 │   └── UsuariosController.cs
+│
 ├── Data/
 │   └── AppDbContext.cs
+│
+├── DTOs/
+│   ├── CadastroUsuarioDto.cs
+│   └── LoginUsuarioDto.cs
+│
+├── LoginApi.Tests/
+│   ├── CustomWebApplicationFactory.cs
+│   ├── LoginApi.Tests.csproj
+│   └── UsuariosControllerTests.cs
+│
 ├── Migrations/
+│
 ├── Models/
-│   ├── CadastroUsuario.cs
-│   ├── LoginUsuario.cs
 │   └── Usuario.cs
+│
+├── Services/
+│   └── UsuarioService.cs
+│
 ├── Properties/
 ├── appsettings.json
-├── Program.cs
 ├── LoginApi.csproj
+├── LoginApi.sln
+├── Program.cs
 └── README.md
 ```
 
@@ -53,38 +68,46 @@ LoginApi/
 
 ### Cadastro
 
-`POST /api/Usuarios`
+```http
+POST /api/Usuarios
+```
 
 Cria um novo usuário.
 
 ### Login
 
-`POST /api/Usuarios/login`
+```http
+POST /api/Usuarios/login
+```
 
-Valida as credenciais e retorna um JWT.
+Valida as credenciais e retorna um token JWT.
 
 ### Rota protegida
 
-`GET /api/Usuarios/protegido`
+```http
+GET /api/Usuarios/protegido
+```
 
-Exige um token JWT válido.
+Só pode ser acessada com um token válido.
 
-### Rota Admin
+### Área Admin
 
-`GET /api/Usuarios/admin`
+```http
+GET /api/Usuarios/admin
+```
 
-Exige um JWT válido e o perfil `Admin`.
+Exige autenticação e perfil `Admin`.
 
-## Autenticação e autorização
+## Autenticação
 
-O fluxo de autenticação funciona da seguinte forma:
+O fluxo de autenticação funciona assim:
 
 ```text
 Cadastro
    ↓
 Senha transformada em hash
    ↓
-Usuário salvo no SQL Server
+Usuário salvo no banco
    ↓
 Login
    ↓
@@ -96,48 +119,44 @@ Token enviado nas próximas requisições
    ↓
 API valida o token
    ↓
-Permissão liberada ou negada
+Acesso liberado ou negado
 ```
 
-Os perfis utilizados no projeto são:
-
-* `Admin`
-* `Usuario`
-
-Exemplo:
+Os perfis utilizados atualmente são:
 
 ```text
-Admin → acesso à rota /admin
-Usuario → acesso negado à rota /admin
+Admin
+Usuario
 ```
 
-## Respostas de autenticação
+Um usuário comum consegue se autenticar, mas não tem acesso às rotas que exigem o perfil `Admin`.
 
-O projeto trata diferentes situações de erro:
+## Tratamento de erros
 
-| Situação               | HTTP |
-| ---------------------- | ---: |
-| Requisição válida      |  200 |
-| Dados inválidos        |  400 |
-| Usuário não encontrado |  404 |
-| Senha incorreta        |  401 |
-| Token inválido         |  401 |
-| Usuário sem permissão  |  403 |
-| E-mail duplicado       |  409 |
+A API trabalha com diferentes respostas HTTP de acordo com cada situação:
+
+* `200` — requisição realizada com sucesso;
+* `400` — dados enviados de forma inválida;
+* `401` — usuário não autenticado ou senha incorreta;
+* `403` — usuário autenticado, mas sem permissão;
+* `404` — usuário não encontrado;
+* `409` — e-mail já cadastrado.
 
 ## Banco de dados
 
-O projeto utiliza **SQL Server** com **Entity Framework Core**.
+O banco principal da aplicação é o SQL Server, utilizando Entity Framework Core.
 
 As alterações da estrutura do banco são controladas por migrations.
 
-## Configuração
+Nos testes de integração, é utilizado SQLite em memória para manter os testes isolados do banco real.
 
-A chave utilizada pelo JWT não fica armazenada diretamente no código-fonte.
+## Segurança
 
-Durante o desenvolvimento, o projeto utiliza **ASP.NET Core User Secrets** para armazenar a chave privada do JWT.
+As senhas não são armazenadas diretamente no banco. A API utiliza `PasswordHasher` para gerar o hash da senha.
 
-O `appsettings.json` contém apenas as configurações não sensíveis, como:
+A chave utilizada para assinar os tokens JWT não fica salva diretamente no código-fonte. Durante o desenvolvimento, a aplicação utiliza ASP.NET Core User Secrets para armazenar a chave.
+
+Exemplo de configuração não sensível:
 
 ```json
 {
@@ -148,13 +167,34 @@ O `appsettings.json` contém apenas as configurações não sensíveis, como:
 }
 ```
 
-## Como executar
+## Testes automatizados
 
-### 1. Clonar o projeto
+O projeto possui testes de integração com xUnit.
+
+Atualmente são testados os principais fluxos da API:
+
+* cadastro de usuário;
+* cadastro com e-mail duplicado;
+* login com credenciais válidas;
+* login com senha incorreta;
+* acesso a rota protegida sem token;
+* acesso de usuário comum a uma rota de Admin.
+
+Os testes utilizam uma versão isolada da aplicação e um banco SQLite em memória.
+
+Para executar:
+
+```bash
+dotnet test LoginApi.Tests/LoginApi.Tests.csproj
+```
+
+## Como executar o projeto
+
+### 1. Clonar o repositório
 
 ```bash
 git clone https://github.com/juliaalmeidamarques227-crypto/FranciscaCucina-LoginApi.git
-cd LoginApi
+cd FranciscaCucina-LoginApi
 ```
 
 ### 2. Restaurar as dependências
@@ -165,14 +205,19 @@ dotnet restore
 
 ### 3. Configurar o banco
 
-Configure uma instância do SQL Server e ajuste a `ConnectionStrings` do projeto conforme seu ambiente.
+Configure uma instância do SQL Server e informe a sua `ConnectionStrings` de acordo com o ambiente local.
 
 ### 4. Configurar a chave JWT
 
-Criar a chave usando User Secrets:
+Inicialize o User Secrets:
 
 ```bash
 dotnet user-secrets init
+```
+
+Depois configure a chave:
+
+```bash
 dotnet user-secrets set "Jwt:Key" "SUA_CHAVE_SECRETA"
 ```
 
@@ -188,17 +233,26 @@ dotnet ef database update
 dotnet run
 ```
 
-Depois, acesse o Swagger disponibilizado pela aplicação.
+Depois, a API pode ser explorada pelo Swagger/OpenAPI disponibilizado pela aplicação.
 
 ## Objetivo do projeto
 
-Este projeto foi desenvolvido como parte do meu portfólio de backend para praticar conceitos importantes de desenvolvimento de APIs, banco de dados, autenticação, autorização e segurança.
+Este projeto faz parte do meu portfólio de desenvolvimento backend e foi criado para praticar, em uma aplicação realista, conceitos de:
+
+* desenvolvimento de APIs REST;
+* banco de dados;
+* Entity Framework Core;
+* autenticação;
+* autorização;
+* JWT;
+* segurança de senhas;
+* organização de código;
+* testes automatizados.
 
 ## Próximos passos
 
-* Melhorar a padronização das respostas da API;
-* adicionar testes automatizados;
-* separar responsabilidades em serviços;
-* implementar frontend para consumo da API;
-* evoluir a documentação;
+* Padronizar melhor as respostas e mensagens de erro;
+* continuar evoluindo a estrutura da API;
+* criar o frontend em React;
+* integrar frontend e backend;
 * preparar o projeto para deploy.

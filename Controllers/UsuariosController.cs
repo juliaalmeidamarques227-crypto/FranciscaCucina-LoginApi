@@ -1,13 +1,7 @@
-using LoginApi.Data;
-using LoginApi.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using LoginApi.DTOs;
+using LoginApi.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LoginApi.Controllers;
 
@@ -15,126 +9,72 @@ namespace LoginApi.Controllers;
 [Route("api/[controller]")]
 public class UsuariosController : ControllerBase
 {
-    private readonly AppDbContext _context;
-    private readonly PasswordHasher<Usuario> _passwordHasher;
-    private readonly IConfiguration _configuration;
+    private readonly UsuarioService _usuarioService;
 
-    public UsuariosController(
-        AppDbContext context,
-        IConfiguration configuration)
+    public UsuariosController(UsuarioService usuarioService)
     {
-        _context = context;
-        _configuration = configuration;
-        _passwordHasher = new PasswordHasher<Usuario>();
+        _usuarioService = usuarioService;
     }
 
     [HttpPost]
-    public async Task<IActionResult> Cadastrar(CadastroUsuario cadastro)
+    public async Task<IActionResult> Cadastrar(CadastroUsuarioDto cadastro)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var emailExiste = await _context.Usuarios
-            .AnyAsync(u => u.Email == cadastro.Email);
+        var resultado = await _usuarioService.Cadastrar(cadastro);
 
-        if (emailExiste)
+        if (!resultado.sucesso)
         {
-            return Conflict("E-mail já cadastrado.");
+            return Conflict(resultado.erro);
         }
-
-        var usuario = new Usuario
-        {
-            Nome = cadastro.Nome,
-            Email = cadastro.Email
-        };
-
-        usuario.SenhaHash = _passwordHasher.HashPassword(
-            usuario,
-            cadastro.Senha
-        );
-
-        _context.Usuarios.Add(usuario);
-        await _context.SaveChangesAsync();
 
         return Ok(new
         {
             mensagem = "Usuário cadastrado com sucesso!",
-            usuario.Id,
-            usuario.Nome,
-            usuario.Email
+            resultado.usuario!.Id,
+            resultado.usuario.Nome,
+            resultado.usuario.Email
         });
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginUsuario login)
+    public async Task<IActionResult> Login(LoginUsuarioDto login)
     {
-        var usuario = await _context.Usuarios
-            .FirstOrDefaultAsync(u => u.Email == login.Email);
+        var resultado = await _usuarioService.Login(login);
 
-        if (usuario == null)
+        if (resultado.usuario == null)
         {
-            return NotFound("Usuário não encontrado.");
+            if (resultado.erro == "Usuário não encontrado.")
+            {
+                return NotFound(resultado.erro);
+            }
+
+            return Unauthorized(resultado.erro);
         }
 
-        var resultado = _passwordHasher.VerifyHashedPassword(
-            usuario,
-            usuario.SenhaHash,
-            login.Senha
-        );
-
-        if (resultado == PasswordVerificationResult.Failed)
-        {
-            return Unauthorized("Senha incorreta.");
-        }
-
-                var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
-            new Claim(ClaimTypes.Name, usuario.Nome),
-            new Claim(ClaimTypes.Email, usuario.Email),
-            new Claim(ClaimTypes.Role, usuario.Perfil)
-        };
-
-        var chave = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(
-                _configuration["Jwt:Key"]!
-            )
-        );
-
-        var credenciais = new SigningCredentials(
-            chave,
-            SecurityAlgorithms.HmacSha256
-        );
-
-        var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
-            audience: _configuration["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(1),
-            signingCredentials: credenciais
-        );
-
-        var tokenString = new JwtSecurityTokenHandler()
-            .WriteToken(token);
+        var token = _usuarioService.GerarToken(resultado.usuario);
 
         return Ok(new
         {
             mensagem = "Login realizado com sucesso!",
-            token = tokenString
+            token
         });
     }
+
     [Authorize]
-[HttpGet("protegido")]
-public IActionResult RotaProtegida()
-{
-    return Ok("Você está autenticado!");
-}
-[Authorize(Roles = "Admin")]
-[HttpGet("admin")]
-public IActionResult AreaAdmin()
-{
-    return Ok("Você é um administrador!");
-}
+    [HttpGet("protegido")]
+    public IActionResult RotaProtegida()
+    {
+        return Ok("Você está autenticado!");
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("admin")]
+    public IActionResult AreaAdmin()
+    {
+        return Ok("Você é um administrador!");
+    }
 }

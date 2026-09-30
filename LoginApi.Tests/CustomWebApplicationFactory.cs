@@ -11,62 +11,65 @@ namespace LoginApi.Tests;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private readonly SqliteConnection _connection;
+private readonly SqliteConnection _connection;
 
-    public CustomWebApplicationFactory()
+public CustomWebApplicationFactory()
+{
+    // O banco fica só durante os testes e não interfere no banco real.
+    _connection = new SqliteConnection("DataSource=:memory:");
+    _connection.Open();
+}
+
+protected override void ConfigureWebHost(IWebHostBuilder builder)
+{
+    builder.UseEnvironment("Development");
+
+    builder.ConfigureAppConfiguration((_, config) =>
     {
-        _connection = new SqliteConnection("DataSource=:memory:");
-        _connection.Open();
-    }
+        var settings = new Dictionary<string, string?>
+        {
+            // Usamos uma configuração própria para os testes.
+            ["Jwt:Key"] = "Teste-JWT-Chave-Segura-2026-123456789",
+            ["Jwt:Issuer"] = "LoginApi.Tests",
+            ["Jwt:Audience"] = "LoginApi.Tests"
+        };
 
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
+        config.AddInMemoryCollection(settings);
+    });
+
+    builder.ConfigureServices(services =>
     {
-        builder.UseEnvironment("Development");
+        var descriptor = services.SingleOrDefault(
+            d => d.ServiceType ==
+                typeof(IDbContextOptionsConfiguration<AppDbContext>));
 
-        builder.ConfigureAppConfiguration((context, config) =>
+        if (descriptor != null)
         {
-            var settings = new Dictionary<string, string?>
-            {
-                ["Jwt:Key"] = "Teste-JWT-Chave-Segura-2026-123456789",
-                ["Jwt:Issuer"] = "LoginApi.Tests",
-                ["Jwt:Audience"] = "LoginApi.Tests"
-            };
-
-            config.AddInMemoryCollection(settings);
-        });
-
-        builder.ConfigureServices(services =>
-        {
-            var descriptor = services.SingleOrDefault(
-                d => d.ServiceType ==
-                    typeof(IDbContextOptionsConfiguration<AppDbContext>));
-
-            if (descriptor != null)
-            {
-                services.Remove(descriptor);
-            }
-
-            services.AddDbContext<AppDbContext>(options =>
-            {
-                options.UseSqlite(_connection);
-            });
-
-            var serviceProvider = services.BuildServiceProvider();
-
-            using var scope = serviceProvider.CreateScope();
-
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            db.Database.EnsureCreated();
-        });
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        base.Dispose(disposing);
-
-        if (disposing)
-        {
-            _connection.Dispose();
+            services.Remove(descriptor);
         }
+
+        services.AddDbContext<AppDbContext>(options =>
+        {
+            options.UseSqlite(_connection);
+        });
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        using var scope = serviceProvider.CreateScope();
+
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.EnsureCreated();
+    });
+}
+
+protected override void Dispose(bool disposing)
+{
+    base.Dispose(disposing);
+
+    if (disposing)
+    {
+        _connection.Dispose();
     }
+}
+
 }
