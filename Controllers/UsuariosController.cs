@@ -16,6 +16,7 @@ public class UsuariosController : ControllerBase
         _usuarioService = usuarioService;
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> Cadastrar(CadastroUsuarioDto cadastro)
     {
