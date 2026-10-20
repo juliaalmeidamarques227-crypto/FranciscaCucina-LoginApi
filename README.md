@@ -220,3 +220,61 @@ Este projeto faz parte do meu portfólio de desenvolvimento backend e foi criado
 - aprimorar a validação dos dados recebidos pela API;
 - continuar evoluindo a documentação do projeto;
 - preparar a aplicação para deploy.
+
+## Como executar o projeto completo
+
+O projeto possui uma interface web desenvolvida com React e uma API desenvolvida com C# e ASP.NET Core.
+
+### Backend — API
+
+Na pasta principal do projeto, execute:
+
+```bash
+dotnet run
+```
+
+A API utiliza a porta `5089` na configuração local.
+
+A documentação dos endpoints pode ser acessada pelo Swagger, quando habilitado na configuração da aplicação.
+
+### Frontend — React
+
+Abra outro terminal e acesse a pasta do frontend:
+
+```bash
+cd frontend
+```
+
+Instale as dependências:
+
+```bash
+npm install
+```
+
+Inicie a aplicação:
+
+```bash
+npm run dev
+```
+
+O Vite exibirá no terminal o endereço local para acessar a interface web.
+
+### Tecnologias utilizadas
+
+**Frontend**
+- React
+- JavaScript
+- Vite
+- Axios
+- React Router
+
+**Backend**
+- C#
+- ASP.NET Core
+- Entity Framework Core
+- JWT
+- SQL Server
+
+**Testes**
+- xUnit
+- Testes automatizados de cadastro, login, autenticação e autorização
