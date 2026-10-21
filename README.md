@@ -22,6 +22,20 @@ API REST desenvolvida com C# e ASP.NET Core para cadastro, login e controle de a
 
 **Ferramentas:** Git e GitHub.
 
+## Telas do sistema
+
+### Login
+
+![Tela de login](docs/login.png)
+
+### Dashboard
+
+![Dashboard do sistema](docs/dashboard.png)
+
+### Área administrativa
+
+![Área administrativa](docs/admin.png)
+
 ## Estrutura do projeto
 
 ```text
