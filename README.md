@@ -106,7 +106,7 @@ dotnet run
 
 ### Frontend
 
-Com a API em execução, abra outro terminal:
+Com a API em execução, abra outro terminal e execute:
 
 ```bash
 cd frontend
