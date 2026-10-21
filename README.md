@@ -1,280 +1,121 @@
 # Francisca Cucina — Login API
 
-API REST desenvolvida em C# e ASP.NET Core para gerenciamento de usuários, autenticação e autorização.
-
-O projeto foi criado para um sistema interno da Francisca Cucina, com foco em uma estrutura simples, organizada e fácil de manter.
+API REST desenvolvida com C# e ASP.NET Core para cadastro, login e controle de acesso de usuários. O projeto também conta com uma interface web feita em React.
 
 ## Funcionalidades
 
-- Cadastro de usuários com validação dos dados;
-- verificação de e-mail duplicado;
-- armazenamento de senhas com hash;
-- login com e-mail e senha;
-- geração de token JWT;
-- proteção de rotas;
-- controle de acesso por perfil;
-- documentação da API com Swagger/OpenAPI;
-- testes automatizados de integração.
+- Cadastro de usuários e verificação de e-mails duplicados.
+- Login com e-mail e senha.
+- Senhas armazenadas com hash.
+- Autenticação por token JWT.
+- Rotas protegidas por autenticação e perfil de usuário.
+- Interface web para login, cadastro e acesso às áreas restritas.
+- Testes automatizados de integração.
 
-## Tecnologias utilizadas
+## Tecnologias
 
-- C#
-- ASP.NET Core 9
-- Entity Framework Core 9
-- SQL Server
-- SQLite em memória para os testes
-- JWT Bearer Authentication
-- Swagger / OpenAPI
-- xUnit
-- Git e GitHub
+**Backend:** C#, ASP.NET Core 9, Entity Framework Core 9, SQL Server, JWT e Swagger/OpenAPI.
+
+**Frontend:** React, JavaScript, Vite, Axios e React Router.
+
+**Testes:** xUnit e SQLite em memória.
+
+**Ferramentas:** Git e GitHub.
 
 ## Estrutura do projeto
 
 ```text
 LoginApi/
 ├── Controllers/
-│   └── UsuariosController.cs
 ├── Data/
-│   └── AppDbContext.cs
 ├── DTOs/
-│   ├── CadastroUsuarioDto.cs
-│   └── LoginUsuarioDto.cs
 ├── LoginApi.Tests/
-│   ├── CustomWebApplicationFactory.cs
-│   ├── LoginApi.Tests.csproj
-│   └── UsuariosControllerTests.cs
 ├── Migrations/
 ├── Models/
-│   └── Usuario.cs
-├── Services/
-│   └── UsuarioService.cs
 ├── Properties/
-├── appsettings.json
+├── Services/
+├── frontend/
+├── .gitignore
 ├── LoginApi.csproj
 ├── LoginApi.sln
 ├── Program.cs
 └── README.md
 ```
 
-## Principais endpoints
+## Endpoints da API
 
-### Cadastro
+| Método | Endpoint | Função |
+|---|---|---|
+| POST | `/api/Usuarios` | Cadastrar usuário |
+| POST | `/api/Usuarios/login` | Fazer login e obter token |
+| GET | `/api/Usuarios/protegido` | Acessar rota autenticada |
+| GET | `/api/Usuarios/admin` | Acessar rota restrita a administradores |
 
-`POST /api/Usuarios`
-
-Cria um novo usuário.
-
-### Login
-
-`POST /api/Usuarios/login`
-
-Valida as credenciais e retorna um token JWT.
-
-### Rota protegida
-
-`GET /api/Usuarios/protegido`
-
-Exige autenticação com um token válido.
-
-### Área administrativa
-
-`GET /api/Usuarios/admin`
-
-Exige autenticação e perfil `Admin`.
-
-## Autenticação e autorização
-
-O fluxo de autenticação funciona da seguinte forma:
-
-1. O usuário realiza o cadastro.
-2. A senha é transformada em hash.
-3. Os dados são armazenados no banco de dados.
-4. O usuário realiza o login.
-5. A API valida as credenciais.
-6. Um token JWT é gerado.
-7. O cliente envia o token nas próximas requisições.
-8. A API valida o token e as permissões antes de liberar o acesso.
-
-Os perfis utilizados atualmente são:
-
-- `Admin`
-- `Usuario`
-
-Um usuário comum pode se autenticar, mas não tem acesso às rotas que exigem o perfil de administrador.
-
-## Tratamento de erros
-
-A API utiliza respostas HTTP de acordo com cada situação, incluindo:
-
-- `200` — requisição realizada com sucesso;
-- `400` — dados inválidos;
-- `401` — usuário não autenticado ou credenciais inválidas;
-- `403` — usuário sem permissão;
-- `404` — recurso não encontrado;
-- `409` — e-mail já cadastrado.
-
-## Banco de dados
-
-O banco principal da aplicação é o SQL Server, acessado por meio do Entity Framework Core.
-
-As alterações na estrutura do banco são controladas por migrations.
-
-Nos testes de integração, é utilizado SQLite em memória para manter os testes isolados do banco de dados principal.
-
-## Segurança
-
-As senhas não são armazenadas diretamente no banco. A API utiliza `PasswordHasher` para gerar e verificar o hash das senhas.
-
-A chave usada para assinar os tokens JWT deve ser mantida fora do código-fonte. Durante o desenvolvimento, o ASP.NET Core User Secrets pode ser utilizado para armazená-la.
-
-Exemplo de configuração não sensível:
-
-```json
-{
-  "Jwt": {
-    "Issuer": "LoginApi",
-    "Audience": "LoginApi"
-  }
-}
-```
+A API utiliza os perfis `Admin` e `Usuario`. O acesso às rotas restritas depende da autenticação e das permissões do usuário.
 
 ## Testes automatizados
 
-O projeto possui testes de integração com xUnit para verificar os principais fluxos da API, incluindo:
+Os testes de integração verificam sete cenários:
 
-- cadastro de usuário;
-- cadastro com e-mail duplicado;
-- login com credenciais válidas;
-- login com senha incorreta;
-- acesso a rota protegida sem autenticação;
-- tentativa de acesso de um usuário comum a uma rota administrativa.
+- Cadastro de usuário válido.
+- Cadastro com e-mail duplicado.
+- Login com credenciais válidas.
+- Login com senha incorreta.
+- Acesso a rota protegida sem token.
+- Tentativa de acesso à rota administrativa por usuário comum.
+- Tentativa de cadastro por usuário comum.
 
-Os testes utilizam uma versão isolada da aplicação e um banco SQLite em memória.
-
-Para executar os testes, utilize:
+Para executar os testes na pasta principal do projeto:
 
 ```bash
 dotnet test LoginApi.Tests/LoginApi.Tests.csproj
 ```
 
-## Como executar o projeto
+## Como executar
 
-### 1. Clonar o repositório
+### Backend
+
+É necessário ter o SDK do .NET compatível com o projeto e uma instância do SQL Server configurada.
+
+1. Clone o repositório:
 
 ```bash
 git clone https://github.com/juliaalmeidamarques227-crypto/FranciscaCucina-LoginApi.git
 cd FranciscaCucina-LoginApi
 ```
 
-### 2. Restaurar as dependências
+2. Restaure as dependências:
 
 ```bash
 dotnet restore
 ```
 
-### 3. Configurar o banco de dados
+3. Configure a conexão com o banco de dados e a chave JWT no ambiente local. Não publique credenciais no repositório.
 
-Configure uma instância do SQL Server e ajuste a string de conexão de acordo com o ambiente local.
-
-### 4. Configurar a chave JWT
-
-Inicialize o User Secrets, caso ainda não esteja configurado:
-
-```bash
-dotnet user-secrets init
-```
-
-Configure uma chave secreta própria para o ambiente local:
-
-```bash
-dotnet user-secrets set "Jwt:Key" "SUA_CHAVE_SECRETA"
-```
-
-Substitua `SUA_CHAVE_SECRETA` por uma chave apropriada para desenvolvimento. Não publique uma chave real no repositório.
-
-### 5. Aplicar as migrations
-
-Com a conexão com o banco configurada, execute:
+4. Aplique as migrations:
 
 ```bash
 dotnet ef database update
 ```
 
-Esse comando requer que a ferramenta `dotnet-ef` esteja instalada em uma versão compatível com o Entity Framework Core utilizado pelo projeto.
-
-### 6. Executar a API
+5. Inicie a API:
 
 ```bash
 dotnet run
 ```
 
-A API pode ser explorada pelo Swagger/OpenAPI, conforme a configuração da aplicação.
+### Frontend
 
-## Objetivo do projeto
-
-Este projeto faz parte do meu portfólio de desenvolvimento backend e foi criado para praticar conceitos de APIs REST, banco de dados, autenticação, autorização, JWT, segurança de senhas, organização de código e testes automatizados.
-
-## Próximos passos
-
-- Melhorar a padronização das respostas e mensagens de erro;
-- aprimorar a validação dos dados recebidos pela API;
-- continuar evoluindo a documentação do projeto;
-- preparar a aplicação para deploy.
-
-## Como executar o projeto completo
-
-O projeto possui uma interface web desenvolvida com React e uma API desenvolvida com C# e ASP.NET Core.
-
-### Backend — API
-
-Na pasta principal do projeto, execute:
-
-```bash
-dotnet run
-```
-
-A API utiliza a porta `5089` na configuração local.
-
-A documentação dos endpoints pode ser acessada pelo Swagger, quando habilitado na configuração da aplicação.
-
-### Frontend — React
-
-Abra outro terminal e acesse a pasta do frontend:
+Com a API em execução, abra outro terminal:
 
 ```bash
 cd frontend
-```
-
-Instale as dependências:
-
-```bash
 npm install
-```
-
-Inicie a aplicação:
-
-```bash
 npm run dev
 ```
 
-O Vite exibirá no terminal o endereço local para acessar a interface web.
+O Vite mostrará no terminal o endereço local para abrir a interface.
 
-### Tecnologias utilizadas
+## Sobre o projeto
 
-**Frontend**
-- React
-- JavaScript
-- Vite
-- Axios
-- React Router
-
-**Backend**
-- C#
-- ASP.NET Core
-- Entity Framework Core
-- JWT
-- SQL Server
-
-**Testes**
-- xUnit
-- Testes automatizados de cadastro, login, autenticação e autorização
+Desenvolvi este projeto para praticar o desenvolvimento de APIs com C#, integração com banco de dados, autenticação JWT, controle de permissões e testes automatizados. Também integrei o backend a uma interface em React para permitir a utilização dos principais recursos pelo navegador.
